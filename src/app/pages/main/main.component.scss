@@ -1,0 +1,11 @@
+.main-layout {
+  height: 100%;
+  .header{
+    display: flex;
+    align-items: center;
+    .logo {
+      height: 48px;
+      object-fit: cover;
+    }
+  }
+}

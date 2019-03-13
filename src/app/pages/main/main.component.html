@@ -1,0 +1,43 @@
+<nz-layout class="main-layout">
+  <nz-header class="header">
+    <img class="logo" src="https://angular.cn/assets/images/logos/angular/shield-large.svg" alt="">
+    <ul nz-menu [nzTheme]="'dark'" [nzMode]="'horizontal'">
+      <li nz-menu-item>nav 1</li>
+      <li nz-menu-item>nav 2</li>
+      <li nz-menu-item>nav 3</li>
+    </ul>
+  </nz-header>
+  <nz-layout>
+    <nz-sider nzCollapsible [(nzCollapsed)]="isCollapsed" [nzBreakpoint]="'lg'" [nzTheme]="'light'">
+      <ul nz-menu [nzTheme]="'light'" [nzMode]="'inline'" [nzInlineCollapsed]="isCollapsed">
+        <li nz-submenu>
+          <span title><i nz-icon type="user"></i><span class="nav-text">User</span></span>
+          <ul>
+            <li nz-menu-item>Tom</li>
+            <li nz-menu-item>Bill</li>
+            <li nz-menu-item>Alex</li>
+          </ul>
+        </li>
+        <li nz-submenu>
+          <span title><i nz-icon type="team"></i><span class="nav-text">Team</span></span>
+          <ul>
+            <li nz-menu-item>Team 1</li>
+            <li nz-menu-item>Team 2</li>
+          </ul>
+        </li>
+        <li nz-menu-item><span><i nz-icon type="file"></i><span class="nav-text">File</span></span></li>
+      </ul>
+    </nz-sider>
+    <nz-layout>
+      <nz-content style="margin:0 16px;">
+        <nz-breadcrumb style="margin:16px 0;">
+          <nz-breadcrumb-item>User</nz-breadcrumb-item>
+          <nz-breadcrumb-item>Bill</nz-breadcrumb-item>
+        </nz-breadcrumb>
+        <div style="padding:24px; background: #fff; min-height: 360px;">
+          Bill is a cat.
+        </div>
+      </nz-content>
+    </nz-layout>
+  </nz-layout>
+</nz-layout>
