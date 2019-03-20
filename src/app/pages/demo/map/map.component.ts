@@ -12,7 +12,6 @@ export class MapComponent implements OnInit {
   map: any; // 地图对象
   tipMarker;
   districtExplorer;
-  nationalDistrictExplorer;
   guangzhouAreaNode; // 当前聚焦的区域
   constructor() {
   }
@@ -22,6 +21,7 @@ export class MapComponent implements OnInit {
       this.loadMap();
     }, 1000);
   }
+
 
   loadMap() {
     this.map = new AMap.Map('container', {
@@ -33,58 +33,64 @@ export class MapComponent implements OnInit {
     });
     this.map.on('complete', () => {
       // this.map.setLimitBounds(new AMap.Bounds([113.596151, 23.357358], [113.995123, 23.992595]));
+      AMapUI.loadUI(['geo/DistrictExplorer'], DistrictExplorer => {
+        this.districtExplorer = new DistrictExplorer({
+          eventSupport: true, //打开事件支持
+          map: this.map //关联的地图实例
+        });
+
+        this.tipMarker = new AMap.Marker({
+          offset: new AMap.Pixel(0, 0),
+          bubble: true
+        });
+
+        this.loadArea();
+
+        //监听feature的hover事件
+        this.districtExplorer.on('featureMouseout featureMouseover', (e, feature) => {
+          this.toggleHoverFeature(feature, e.type === 'featureMouseover', e.originalEvent ? e.originalEvent.lnglat : null);
+        });
+
+        //监听鼠标在feature上滑动
+        this.districtExplorer.on('featureMousemove', (e, feature) => {
+          //更新提示位置
+          this.tipMarker.setPosition(e.originalEvent.lnglat);
+        });
+
+        //feature被点击
+        this.districtExplorer.on('featureClick', (e, feature) => {
+          this.renderDistrict(feature);
+        });
+
+        //外部区域被点击
+        this.districtExplorer.on('outsideClick', e => {
+          this.map.setZoom(9);
+          setTimeout(() => {
+            this.renderGuangzhou();
+          }, 300);
+        });
+
+      });
     });
-    AMapUI.loadUI(['geo/DistrictExplorer'], DistrictExplorer => {
-      this.nationalDistrictExplorer = new DistrictExplorer({
-        map: this.map //关联的地图实例
-      });
-      this.districtExplorer = new DistrictExplorer({
-        eventSupport: true, //打开事件支持
-        map: this.map //关联的地图实例
-      });
 
-      this.loadGuangzhouArea(); // 绘制广州区各区域边界
-
-      this.tipMarker = new AMap.Marker({
-        offset: new AMap.Pixel(0, 0),
-        bubble: true
-      });
-
-      //监听feature的hover事件
-      this.districtExplorer.on('featureMouseout featureMouseover', (e, feature) => {
-        this.toggleHoverFeature(feature, e.type === 'featureMouseover', e.originalEvent ? e.originalEvent.lnglat : null);
-      });
-
-      //监听鼠标在feature上滑动
-      this.districtExplorer.on('featureMousemove', (e, feature) => {
-        //更新提示位置
-        this.tipMarker.setPosition(e.originalEvent.lnglat);
-      });
-
-      //feature被点击
-      this.districtExplorer.on('featureClick', (e, feature) => {
-        this.renderDistrict(feature);
-      });
-
-      //外部区域被点击
-      this.districtExplorer.on('outsideClick', e => {
-        this.loadGuangzhouArea();
-      });
-
-      this.loadArea(); // 反向镂空广州市 https://lbs.amap.com/api/amap-ui/demos/amap-ui-districtexplorer/reverse
-    });
   }
 
   loadArea() {
-    // 加载全国和广州市，全国的节点包含省级
-    this.nationalDistrictExplorer.loadMultiAreaNodes([100000, 440100], (error, areaNodes) => {
+    // 加载全国和广州市，全国的节点包含省级 https://lbs.amap.com/api/amap-ui/demos/amap-ui-districtexplorer/reverse
+    this.districtExplorer.loadMultiAreaNodes([100000, 440100], (error, areaNodes) => {
       if (error) {
         console.error(error);
         return;
       }
+
       const countryNode = areaNodes[0];
       const cityNode = areaNodes[1];
       const path = [];
+
+      this.guangzhouAreaNode = cityNode;
+      this.districtExplorer.setAreaNodesForLocating(cityNode);
+      this.renderGuangzhou(); // 广州渲染各区域
+
       //首先放置背景区域，这里是大陆的边界
       path.push(this.getLongestRing(countryNode.getParentFeature()));
       // 广州市边界
@@ -104,31 +110,12 @@ export class MapComponent implements OnInit {
     });
   }
 
-  loadGuangzhouArea() {
-    if (this.guangzhouAreaNode) {
-      this.map.setZoom(9);
-      setTimeout(() => {
-        this.renderGuangzhou(this.guangzhouAreaNode);
-      }, 400);
-      return;
-    }
-    const adcode = 440100; //广州市 https://webapi.amap.com/ui/1.0/ui/geo/DistrictExplorer/assets/d_v1/country_tree.json
-    this.districtExplorer.loadAreaNode(adcode, (error, areaNode) => {
-      if (error) {
-        console.error(error);
-        return;
-      }
-      this.guangzhouAreaNode = areaNode;
-      this.renderGuangzhou(areaNode);
-    });
-  }
-
-  renderGuangzhou(areaNode) {
+  renderGuangzhou() {
     //清除已有的绘制内容
     this.districtExplorer.clearFeaturePolygons();
 
     //绘制子级区划
-    this.districtExplorer.renderSubFeatures(areaNode, (feature, i) => {
+    this.districtExplorer.renderSubFeatures(this.guangzhouAreaNode, (feature, i) => {
       return {
         cursor: 'pointer',
         bubble: true,
@@ -141,7 +128,7 @@ export class MapComponent implements OnInit {
     });
 
     //绘制父级区划
-    this.districtExplorer.renderParentFeature(areaNode, {
+    this.districtExplorer.renderParentFeature(this.guangzhouAreaNode, {
       cursor: 'default',
       bubble: true,
       strokeColor: '#87D2FF', //线颜色
