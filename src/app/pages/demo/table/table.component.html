@@ -1,0 +1,47 @@
+<div class="operate">
+  <button nz-button [disabled]="table.numberOfChecked === 0" [nzType]="'primary'" [nzLoading]="table.loading"
+          (click)="operateData()">重选
+  </button>
+  <span *ngIf="table.numberOfChecked"> 已选{{table.numberOfChecked}}条记录 </span>
+</div>
+<nz-table #nztable
+          [nzData]="table.data"
+          [nzFrontPagination]="false"
+          [nzTotal]="table.total"
+          [(nzPageIndex)]="table.pageIndex"
+          [(nzPageSize)]="table.pageSize"
+          [nzLoading]="table.loading"
+          [nzSize]="'middle'"
+          [nzShowPagination]="true"
+          [nzShowQuickJumper]="true"
+          [nzShowSizeChanger]="true"
+          [nzShowTotal]="rangeTemplate"
+          (nzPageIndexChange)="searchData()"
+          (nzPageSizeChange)="searchData(true)">
+  <thead>
+  <tr>
+    <th nzShowCheckbox [(nzChecked)]="table.isAllDataChecked" [nzIndeterminate]="table.isIndeterminate"
+        (nzCheckedChange)="check($event,table.data)"></th>
+    <th>编号</th>
+    <th>姓名</th>
+    <th>性别</th>
+    <th>年龄</th>
+    <th>生日</th>
+    <th>工作地点</th>
+  </tr>
+  </thead>
+  <tbody>
+  <tr *ngFor="let data of nztable.data">
+    <td nzShowCheckbox [(nzChecked)]="table.mapOfCheckedId[data.id]" (nzCheckedChange)="check($event,[data])"></td>
+    <td>{{data.id}}</td>
+    <td>{{data.name}}</td>
+    <td>{{data.sex}}</td>
+    <td>{{data.age}}</td>
+    <td>{{data.birthday|date:'yyyy-MM-dd'}}</td>
+    <td>{{data.address}}</td>
+  </tr>
+  </tbody>
+</nz-table>
+<ng-template #rangeTemplate let-range="range" let-total>
+  共{{total}}条记录，当前显示{{range[0]}}-{{range[1]}}条
+</ng-template>
