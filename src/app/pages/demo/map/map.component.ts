@@ -88,6 +88,11 @@ export class MapComponent implements OnInit {
       const path = [];
 
       this.guangzhouAreaNode = cityNode;
+      const gz = cityNode.getParentFeature();
+      const sub = cityNode.getSubFeatures();
+      // console.log(JSON.stringify(gz));
+      console.log(JSON.stringify(sub));
+      debugger;
       this.districtExplorer.setAreaNodesForLocating(cityNode);
       this.renderGuangzhou(); // 广州渲染各区域
 
